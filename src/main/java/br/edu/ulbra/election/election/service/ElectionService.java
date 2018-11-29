@@ -10,7 +10,6 @@ import org.apache.commons.lang.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -19,31 +18,28 @@ import java.util.List;
 @Service
 public class ElectionService {
 
-    private final ElectionRepository voterRepository;
+    private final ElectionRepository electionRepository;
 
     private final ModelMapper modelMapper;
-
-    private final PasswordEncoder passwordEncoder;
 
     private static final String MESSAGE_INVALID_ID = "Invalid id";
     private static final String MESSAGE_ELECTION_NOT_FOUND = "election not found";
 
     @Autowired
-    public ElectionService(ElectionRepository voterRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder){
-        this.voterRepository = voterRepository;
+    public ElectionService(ElectionRepository electionRepository, ModelMapper modelMapper){
+        this.electionRepository = electionRepository;
         this.modelMapper = modelMapper;
-        this.passwordEncoder = passwordEncoder;
     }
 
     public List<ElectionOutput> getAll(){
         Type voterOutputListType = new TypeToken<List<ElectionOutput>>(){}.getType();
-        return modelMapper.map(voterRepository.findAll(), voterOutputListType);
+        return modelMapper.map(electionRepository.findAll(), voterOutputListType);
     }
 
-    public ElectionOutput create(ElectionInput voterInput) {
-        validateInput(voterInput, false);
-        Election election = modelMapper.map(voterInput, Election.class);
-        election = voterRepository.save(election);
+    public ElectionOutput create(ElectionInput electionInput) {
+        validateInput(electionInput, false);
+        Election election = modelMapper.map(electionInput, Election.class);
+        election = electionRepository.save(election);
         return modelMapper.map(election, ElectionOutput.class);
     }
 
@@ -52,7 +48,7 @@ public class ElectionService {
             throw new GenericOutputException(MESSAGE_INVALID_ID);
         }
 
-        Election election = voterRepository.findById(voterId).orElse(null);
+        Election election = electionRepository.findById(voterId).orElse(null);
         if (election == null){
             throw new GenericOutputException(MESSAGE_ELECTION_NOT_FOUND);
         }
@@ -65,7 +61,7 @@ public class ElectionService {
             throw new GenericOutputException(MESSAGE_INVALID_ID);
         }
 
-        List<Election> election = voterRepository.findByYear(year).orElse(null);
+        List<Election> election = electionRepository.findByYear(year).orElse(null);
         if (election == null){
             throw new GenericOutputException(MESSAGE_ELECTION_NOT_FOUND);
         }
@@ -79,7 +75,7 @@ public class ElectionService {
         }
         validateInput(voterInput, true);
 
-        Election election = voterRepository.findById(voterId).orElse(null);
+        Election election = electionRepository.findById(voterId).orElse(null);
         if (election == null){
             throw new GenericOutputException(MESSAGE_ELECTION_NOT_FOUND);
         }
@@ -87,7 +83,7 @@ public class ElectionService {
         election.setDescription(voterInput.getDescription());
         election.setStateCode(voterInput.getStateCode());
         election.setYear(voterInput.getYear());
-        election = voterRepository.save(election);
+        election = electionRepository.save(election);
         return modelMapper.map(election, ElectionOutput.class);
     }
 
@@ -96,12 +92,12 @@ public class ElectionService {
             throw new GenericOutputException(MESSAGE_INVALID_ID);
         }
 
-        Election election = voterRepository.findById(voterId).orElse(null);
+        Election election = electionRepository.findById(voterId).orElse(null);
         if (election == null){
             throw new GenericOutputException(MESSAGE_ELECTION_NOT_FOUND);
         }
 
-        voterRepository.delete(election);
+        electionRepository.delete(election);
 
         return new GenericOutput("election deleted");
     }
@@ -152,12 +148,12 @@ public class ElectionService {
         }
         int counter = 0;
         for(String stateCode: states){
-            if(stateCode ==  voterInput.getStateCode()){
+            if(stateCode !=  voterInput.getStateCode()){
                 counter++;
             }
         }
 
-        if (counter > 0){
+        if (counter == 0){
             throw new GenericOutputException("State code is not br");
         }
     }

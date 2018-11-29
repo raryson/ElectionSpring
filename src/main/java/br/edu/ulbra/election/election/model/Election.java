@@ -38,7 +38,7 @@ public class Election {
         return stateCode;
     }
 
-    public void setStateCode(String name) {
+    public void setStateCode(String stateCode) {
         this.stateCode = stateCode;
     }
 
