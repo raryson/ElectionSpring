@@ -102,7 +102,7 @@ public class ElectionService {
         return new GenericOutput("election deleted");
     }
 
-    private void validateInput(ElectionInput voterInput, boolean isUpdate){
+    private void validateInput(ElectionInput electionInput, boolean isUpdate){
         String[] states =
                 {"AC",
                         "AL",
@@ -132,23 +132,23 @@ public class ElectionService {
                         "SE",
                         "TO" };
 
-        if (StringUtils.isBlank(voterInput.getDescription())){
+        if (StringUtils.isBlank(electionInput.getDescription())){
             throw new GenericOutputException("Invalid description");
         }
-        if (StringUtils.isBlank(voterInput.getStateCode())) {
+        if (StringUtils.isBlank(electionInput.getStateCode())) {
             throw new GenericOutputException("Invalid statecode");
         }
 
-        if (voterInput.getYear() < 2000 || voterInput.getYear() > 2200) {
+        if (electionInput.getYear() < 2000 || electionInput.getYear() > 2200) {
             throw new GenericOutputException("Invalid year");
         }
 
-        if (voterInput.getDescription().length() < 5) {
+        if (electionInput.getDescription().length() < 5) {
             throw new GenericOutputException("Invalid description");
         }
         int counter = 0;
         for(String stateCode: states){
-            if(stateCode !=  voterInput.getStateCode()){
+            if(stateCode !=  electionInput.getStateCode()){
                 counter++;
             }
         }

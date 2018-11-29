@@ -1,7 +1,7 @@
 databaseChangeLog:
   - changeSet:
       id: CREATE_TABLE_ELECTION
-      author: tales.viegas
+      author: raryson.rost
       sqlFile:
         path: "scripts/001.CREATE_TABLE_ELECTION.sql"
         relativeToChangelogFile: true
