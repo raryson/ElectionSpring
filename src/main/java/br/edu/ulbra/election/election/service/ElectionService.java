@@ -43,12 +43,12 @@ public class ElectionService {
         return modelMapper.map(election, ElectionOutput.class);
     }
 
-    public ElectionOutput getById(Long voterId){
-        if (voterId == null){
+    public ElectionOutput getById(Long electionId){
+        if (electionId == null){
             throw new GenericOutputException(MESSAGE_INVALID_ID);
         }
 
-        Election election = electionRepository.findById(voterId).orElse(null);
+        Election election = electionRepository.findById(electionId).orElse(null);
         if (election == null){
             throw new GenericOutputException(MESSAGE_ELECTION_NOT_FOUND);
         }
