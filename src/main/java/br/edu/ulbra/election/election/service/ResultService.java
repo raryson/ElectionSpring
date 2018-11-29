@@ -50,6 +50,7 @@ public class ResultService {
             throw new GenericOutputException("Invalid Election Id");
         long numberAllVotes = votesByElection.size();
         long blankVotes = 0;
+        long nullVotes = 0;
         ResultOutput result = new ResultOutput();
         ArrayList<ElectionCandidateResultOutput> resultCandidate = new ArrayList<>();
         for(Vote voted : votesByElection){
@@ -57,10 +58,15 @@ public class ResultService {
                 blankVotes++;
             } else {
                 List<Vote> electionVotes = voteRepository.findAllByCandidateIdAndElectionId(voted.getCandidateId(), voted.getElectionId()).orElse(null);
-                ElectionCandidateResultOutput candidate = new ElectionCandidateResultOutput();
-                candidate.setCandidate(candidateClientService.getById(voted.getCandidateId()));
-                candidate.setTotalVotes((long)electionVotes.size());
-                resultCandidate.add(candidate);
+                if(electionVotes == null) {
+                    nullVotes++;
+                } else {
+                    ElectionCandidateResultOutput candidate = new ElectionCandidateResultOutput();
+                    candidate.setCandidate(candidateClientService.getById(voted.getCandidateId()));
+                    candidate.setTotalVotes((long)electionVotes.size());
+                    resultCandidate.add(candidate);
+                }
+
             }
 
         }
