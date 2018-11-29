@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
@@ -22,13 +23,14 @@ public class VoteApi {
         this.voteService = voteService;
     }
 
-    @PostMapping("/{electionId}")
-    public GenericOutput electionVote(@RequestBody VoteInput voteInput){
+    @PostMapping("/")
+    public GenericOutput electionVote(@RequestHeader(value = "x-token") String token, @RequestBody VoteInput voteInput){
         return voteService.create(voteInput);
     }
 
     @PostMapping("/multiple")
-    public GenericOutput multipleElectionVote(@RequestBody List<VoteInput> voteInputList){
+    public GenericOutput multipleElectionVote(@RequestHeader(value = "x-token") String token, @RequestBody List<VoteInput> voteInputList){
         return voteService.createAll(voteInputList);
     }
+
 }

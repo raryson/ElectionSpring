@@ -3,9 +3,11 @@ package br.edu.ulbra.election.election.service;
 import br.edu.ulbra.election.election.exception.GenericOutputException;
 import br.edu.ulbra.election.election.input.v1.ElectionInput;
 import br.edu.ulbra.election.election.model.Election;
+import br.edu.ulbra.election.election.model.Vote;
 import br.edu.ulbra.election.election.output.v1.GenericOutput;
 import br.edu.ulbra.election.election.output.v1.ElectionOutput;
 import br.edu.ulbra.election.election.repository.ElectionRepository;
+import br.edu.ulbra.election.election.repository.VoteRepository;
 import org.apache.commons.lang.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -24,11 +26,16 @@ public class ElectionService {
 
     private static final String MESSAGE_INVALID_ID = "Invalid id";
     private static final String MESSAGE_ELECTION_NOT_FOUND = "election not found";
+    private final VoteRepository voteRepository;
+    private final ResultService resultService;
 
     @Autowired
-    public ElectionService(ElectionRepository electionRepository, ModelMapper modelMapper){
+    public ElectionService(ElectionRepository electionRepository, ModelMapper modelMapper, 
+                           VoteRepository voteRepository, ResultService resultService){
         this.electionRepository = electionRepository;
         this.modelMapper = modelMapper;
+        this.voteRepository = voteRepository;
+        this.resultService = resultService;
     }
 
     public List<ElectionOutput> getAll(){
@@ -69,37 +76,60 @@ public class ElectionService {
         return modelMapper.map(election, ElectionOutput.class);
     }
 
-    public ElectionOutput update(Long voterId, ElectionInput voterInput) {
-        if (voterId == null){
+    public ElectionOutput update(Long electionId, ElectionInput electionInput) {
+        if (electionId == null){
             throw new GenericOutputException(MESSAGE_INVALID_ID);
         }
-        validateInput(voterInput, true);
+        validateInput(electionInput, true);
 
-        Election election = electionRepository.findById(voterId).orElse(null);
+        Election election = electionRepository.findById(electionId).orElse(null);
         if (election == null){
             throw new GenericOutputException(MESSAGE_ELECTION_NOT_FOUND);
         }
 
-        election.setDescription(voterInput.getDescription());
-        election.setStateCode(voterInput.getStateCode());
-        election.setYear(voterInput.getYear());
+        checkIfHasVotesOnElection(electionId);
+        checkIfElectionHasCandidates(electionId);
+
+        election.setDescription(electionInput.getDescription());
+        election.setStateCode(electionInput.getStateCode());
+        election.setYear(electionInput.getYear());
         election = electionRepository.save(election);
         return modelMapper.map(election, ElectionOutput.class);
     }
 
-    public GenericOutput delete(Long voterId) {
-        if (voterId == null){
+    public GenericOutput delete(Long electionId) {
+        if (electionId == null){
             throw new GenericOutputException(MESSAGE_INVALID_ID);
         }
 
-        Election election = electionRepository.findById(voterId).orElse(null);
+        Election election = electionRepository.findById(electionId).orElse(null);
         if (election == null){
             throw new GenericOutputException(MESSAGE_ELECTION_NOT_FOUND);
         }
+        checkIfHasVotesOnElection(electionId);
+        checkIfElectionHasCandidates(electionId);
 
         electionRepository.delete(election);
 
         return new GenericOutput("election deleted");
+    }
+
+    private void checkIfHasVotesOnElection(Long electionId){
+        Vote vote = voteRepository.findFirstByElectionId(electionId).orElse(null);
+        if(vote != null){
+            throw new GenericOutputException("cannot update or delete election with votes");
+        }
+    }
+
+    private void checkIfElectionHasCandidates(Long electionId){
+        List<Vote> votes = voteRepository.findAllByElectionId(electionId).orElse(null);
+        if (votes != null){
+            for(Vote voted : votes){
+                if(voted.getCandidateId() != null || voted.getCandidateId().toString().isEmpty()){
+                    throw new GenericOutputException("cannot update or delete election with candidates");
+                }
+            }
+        }
     }
 
     private void validateInput(ElectionInput electionInput, boolean isUpdate){

@@ -73,6 +73,7 @@ public class ResultService {
 
         result.setCandidates(resultCandidate);
         result.setBlankVotes(blankVotes);
+        result.setNullVotes(nullVotes);
         result.setTotalVotes(numberAllVotes);
         result.setElection(electionService.getById(electionId));
         return result;
