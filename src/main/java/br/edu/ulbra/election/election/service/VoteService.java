@@ -4,6 +4,7 @@ import br.edu.ulbra.election.election.exception.GenericOutputException;
 import br.edu.ulbra.election.election.input.v1.VoteInput;
 import br.edu.ulbra.election.election.model.Vote;
 import br.edu.ulbra.election.election.output.v1.GenericOutput;
+import br.edu.ulbra.election.election.output.v1.VoterOutput;
 import br.edu.ulbra.election.election.repository.VoteRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,14 +23,27 @@ public class VoteService {
     private static final String MESSAGE_ELECTION_NOT_FOUND = "election not found";
     private static final String MESSAGE_CANDIDATE_NOT_FOUND = "candidate not found";
     private static final String MESSAGE_VOTER_NOT_FOUND = "voter not found";
+    private final LoginClientService loginClientService;
 
     @Autowired
-    public VoteService(VoteRepository voteRepository, ModelMapper modelMapper){
+    public VoteService(VoteRepository voteRepository, ModelMapper modelMapper, LoginClientService loginClientService){
         this.voteRepository = voteRepository;
         this.modelMapper = modelMapper;
+        this.loginClientService = loginClientService;
     }
 
-    public GenericOutput create(VoteInput voteInput) {
+
+    private void checkTokenAuth(String token)
+    {
+        try {
+            VoterOutput loginData = loginClientService.checkToken(token);
+        } catch (Exception ex) {
+            throw new GenericOutputException("Invalid Token");
+        }
+    }
+
+    public GenericOutput create(VoteInput voteInput, String token) {
+        checkTokenAuth(token);
         validateInput(voteInput);
         Vote vote = new Vote();
         vote.setElectionId(voteInput.getElectionId());
@@ -43,7 +57,8 @@ public class VoteService {
         }
     }
 
-    public GenericOutput createAll(List<VoteInput> voteInput) {
+    public GenericOutput createAll(List<VoteInput> voteInput, String token) {
+        checkTokenAuth(token);
         for(VoteInput voted: voteInput){
             validateInput(voted);
             Vote vote = new Vote();

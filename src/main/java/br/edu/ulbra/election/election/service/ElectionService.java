@@ -27,15 +27,13 @@ public class ElectionService {
     private static final String MESSAGE_INVALID_ID = "Invalid id";
     private static final String MESSAGE_ELECTION_NOT_FOUND = "election not found";
     private final VoteRepository voteRepository;
-    private final ResultService resultService;
 
     @Autowired
     public ElectionService(ElectionRepository electionRepository, ModelMapper modelMapper, 
-                           VoteRepository voteRepository, ResultService resultService){
+                           VoteRepository voteRepository){
         this.electionRepository = electionRepository;
         this.modelMapper = modelMapper;
         this.voteRepository = voteRepository;
-        this.resultService = resultService;
     }
 
     public List<ElectionOutput> getAll(){
