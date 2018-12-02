@@ -33,17 +33,20 @@ public class VoteService {
     }
 
 
-    private void checkTokenAuth(String token)
+    private void checkTokenAuth(String token, long voterId)
     {
         try {
             VoterOutput loginData = loginClientService.checkToken(token);
+            if (loginData.getId() != voterId){
+                throw new GenericOutputException("Invalid Token");
+            }
         } catch (Exception ex) {
             throw new GenericOutputException("Invalid Token");
         }
     }
 
     public GenericOutput create(VoteInput voteInput, String token) {
-        checkTokenAuth(token);
+        checkTokenAuth(token, voteInput.getVoterId());
         validateInput(voteInput);
         Vote vote = new Vote();
         vote.setElectionId(voteInput.getElectionId());
@@ -58,8 +61,8 @@ public class VoteService {
     }
 
     public GenericOutput createAll(List<VoteInput> voteInput, String token) {
-        checkTokenAuth(token);
         for(VoteInput voted: voteInput){
+            checkTokenAuth(token, voted.getVoterId());
             validateInput(voted);
             Vote vote = new Vote();
             vote.setElectionId(voted.getElectionId());
